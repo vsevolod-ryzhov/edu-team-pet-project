@@ -28,7 +28,6 @@ int main() {
     pair<int, int> START = {-1, -1};
     pair<int, int> END = {-1, -1};
     for (int i = 0; i < H; i++) {
-        // Проверяем, есть ли в строке хотя бы один символ и совпадает ли он с target
         if (matrix[i].find('S') != -1) {
             if (START != check) {
                 START = {i + 1, matrix[i].find('S')};
