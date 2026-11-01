@@ -57,3 +57,19 @@ func DecodePath(out string) ([]maze.Point, error) {
 	}
 	return path, nil
 }
+
+// EncodePath печатает ответ в формате протокола — ровно то, что должен
+// вывести в stdout решатель на C++. Нужна для флага -print-raw: стажёр
+// сверяет свой вывод с эталонным через diff, а не на глаз.
+// Пустой путь (nil) кодируется как NO_PATH.
+func EncodePath(path []maze.Point) string {
+	if path == nil {
+		return "NO_PATH\n"
+	}
+	var b strings.Builder
+	fmt.Fprintf(&b, "OK %d\n", len(path))
+	for _, p := range path {
+		fmt.Fprintf(&b, "%d %d\n", p.X, p.Y)
+	}
+	return b.String()
+}
