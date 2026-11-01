@@ -128,3 +128,30 @@ func TestExternalReportsStderr(t *testing.T) {
 		t.Errorf("сообщение из stderr потерялось: %v", err)
 	}
 }
+
+// Кодирование и разбор — две стороны одного контракта, поэтому проверяем,
+// что одно обратно другому: если они разойдутся, -print-raw начнёт
+// показывать стажёру формат, который сам же CLI не примет.
+func TestEncodePathRoundTrip(t *testing.T) {
+	want := []maze.Point{{X: 1, Y: 1}, {X: 2, Y: 1}, {X: 3, Y: 1}}
+	out := EncodePath(want)
+	if out != "OK 3\n1 1\n2 1\n3 1\n" {
+		t.Fatalf("EncodePath = %q", out)
+	}
+	got, err := DecodePath(out)
+	if err != nil {
+		t.Fatalf("DecodePath(EncodePath(...)): %v", err)
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Fatalf("клетка %d: %v, ожидалось %v", i, got[i], want[i])
+		}
+	}
+}
+
+func TestEncodePathNoPath(t *testing.T) {
+	out := EncodePath(nil)
+	if _, err := DecodePath(out); !errors.Is(err, ErrNoPath) {
+		t.Fatalf("EncodePath(nil) = %q, DecodePath вернул %v", out, err)
+	}
+}

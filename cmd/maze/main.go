@@ -30,6 +30,8 @@ func run() error {
 		"путь до решателя; \"reference\" — встроенный эталон на Go")
 	timeout := flag.Duration("timeout", 5*time.Second, "сколько ждать внешний решатель")
 	check := flag.Bool("check", true, "проверять корректность полученного пути")
+	printRaw := flag.Bool("print-raw", false,
+		"печатать ответ в формате протокола вместо картинки (для сверки через diff)")
 	flag.Parse()
 
 	src := io.Reader(os.Stdin)
@@ -54,6 +56,9 @@ func run() error {
 
 	path, err := s.Solve(m)
 	switch {
+	case errors.Is(err, solver.ErrNoPath) && *printRaw:
+		fmt.Print(solver.EncodePath(nil))
+		return nil
 	case errors.Is(err, solver.ErrNoPath):
 		fmt.Printf("решатель: %s\n", s.Name())
 		fmt.Println("пути нет")
@@ -67,6 +72,13 @@ func run() error {
 		if err := m.ValidatePath(path); err != nil {
 			return fmt.Errorf("решатель %s вернул некорректный путь: %w", s.Name(), err)
 		}
+	}
+
+	// В сыром режиме — только stdout в формате протокола, без заголовков:
+	// иначе diff с выводом C++-решателя покажет лишние строки.
+	if *printRaw {
+		fmt.Print(solver.EncodePath(path))
+		return nil
 	}
 
 	fmt.Printf("решатель: %s\n", s.Name())
